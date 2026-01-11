@@ -1,13 +1,10 @@
-# This workflow searches for new versions in the em-client version history and updates repository
+# This workflow searches for new versions of Mandelbulber2 and updates the repository
 
 name: update
 
-# this workflow runs at 02:00 UTC every day
 on:
   schedule:
   - cron: "0 2 * * *"
-
-  # Allows to run this workflow manually from the Actions tab
   workflow_dispatch:
 
 jobs:
@@ -15,22 +12,25 @@ jobs:
     runs-on: windows-latest
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
 
       - name: Install automatic updater
         run: Install-Module -Name AU -Force
         shell: pwsh
-      
+
       - name: Run update script
-        run: |
-          ./update.ps1
+        run: ./update.ps1
         shell: pwsh
 
-      - name: Git config
+      - name: Commit and push changes
+        shell: pwsh
         run: |
-            git config --global user.name 'Update Bot'
-            git config --global user.email 'noreply@chocolatey.com'
-
-      - name: Git commit
-        shell: bash
-        run: if [[ `git status --porcelain` ]]; then git commit -am "Automatic Update"; git push; else echo "Keine Änderungen"; fi
+          git config --global user.name 'Update Bot'
+          git config --global user.email 'noreply@chocolatey.com'
+          $changes = git status --porcelain
+          if ($changes) {
+            git commit -am "Automatic Update"
+            git push
+          } else {
+            Write-Host "No changes to commit"
+          }

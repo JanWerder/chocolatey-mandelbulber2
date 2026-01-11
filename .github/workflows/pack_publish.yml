@@ -1,19 +1,22 @@
 name: Pack & Publish
+
 on:
   push:
-    branches: [ main ]
+    branches: [main]
   workflow_dispatch:
+
 jobs:
-  run:
+  publish:
     runs-on: windows-latest
+
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
 
       - name: Pack
         run: choco pack
-        
+
       - name: Publish
-        shell: powershell
+        shell: pwsh
         env:
           CHOCO_SECRET: ${{ secrets.CHOCO_SECRET }}
-        run: choco push --source "'https://push.chocolatey.org/'" --api-key="'$env:CHOCO_SECRET'" 
+        run: choco push --source "https://push.chocolatey.org/" --api-key "$env:CHOCO_SECRET"
