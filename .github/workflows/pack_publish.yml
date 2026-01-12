@@ -11,29 +11,33 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
 
-      - name: Check if version is new
+      - name: Check if version changed
         id: version_check
         shell: pwsh
         run: |
           [xml]$nuspec = Get-Content mandelbulber2.nuspec
-          $version = $nuspec.package.metadata.version
-          Write-Host "Local version: $version"
+          $currentVersion = $nuspec.package.metadata.version
+          Write-Host "Current version: $currentVersion"
 
-          $searchResult = choco search mandelbulber2 --exact --limit-output
-          if ($searchResult) {
-            $publishedVersion = ($searchResult -split '\|')[1]
-            Write-Host "Published version: $publishedVersion"
+          # Get version from previous commit
+          $previousNuspec = git show HEAD~1:mandelbulber2.nuspec 2>$null
+          if ($LASTEXITCODE -eq 0 -and $previousNuspec) {
+            [xml]$prevXml = $previousNuspec
+            $previousVersion = $prevXml.package.metadata.version
+            Write-Host "Previous version: $previousVersion"
 
-            if ($version -eq $publishedVersion) {
-              Write-Host "Version $version already published, skipping"
-              "new_version=false" >> $env:GITHUB_OUTPUT
-            } else {
-              Write-Host "New version $version detected"
+            if ($currentVersion -ne $previousVersion) {
+              Write-Host "Version changed from $previousVersion to $currentVersion"
               "new_version=true" >> $env:GITHUB_OUTPUT
+            } else {
+              Write-Host "Version unchanged, skipping publish"
+              "new_version=false" >> $env:GITHUB_OUTPUT
             }
           } else {
-            Write-Host "Package not found on Chocolatey, publishing new package"
+            Write-Host "Could not get previous version (new repo or nuspec renamed), publishing"
             "new_version=true" >> $env:GITHUB_OUTPUT
           }
 
