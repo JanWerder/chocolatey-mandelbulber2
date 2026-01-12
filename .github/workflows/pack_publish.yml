@@ -12,10 +12,37 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Check if version is new
+        id: version_check
+        shell: pwsh
+        run: |
+          [xml]$nuspec = Get-Content mandelbulber2.nuspec
+          $version = $nuspec.package.metadata.version
+          Write-Host "Local version: $version"
+
+          $searchResult = choco search mandelbulber2 --exact --limit-output
+          if ($searchResult) {
+            $publishedVersion = ($searchResult -split '\|')[1]
+            Write-Host "Published version: $publishedVersion"
+
+            if ($version -eq $publishedVersion) {
+              Write-Host "Version $version already published, skipping"
+              "new_version=false" >> $env:GITHUB_OUTPUT
+            } else {
+              Write-Host "New version $version detected"
+              "new_version=true" >> $env:GITHUB_OUTPUT
+            }
+          } else {
+            Write-Host "Package not found on Chocolatey, publishing new package"
+            "new_version=true" >> $env:GITHUB_OUTPUT
+          }
+
       - name: Pack
+        if: steps.version_check.outputs.new_version == 'true'
         run: choco pack
 
       - name: Publish
+        if: steps.version_check.outputs.new_version == 'true'
         shell: pwsh
         env:
           CHOCO_SECRET: ${{ secrets.CHOCO_SECRET }}
