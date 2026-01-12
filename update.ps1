@@ -1,5 +1,8 @@
 import-module au
 
+# Ensure we're in the script's directory so AU can find the nuspec file
+Set-Location (Split-Path -Parent $MyInvocation.MyCommand.Path)
+
 function global:au_SearchReplace {
     @{
         'tools\chocolateyinstall.ps1' = @{
