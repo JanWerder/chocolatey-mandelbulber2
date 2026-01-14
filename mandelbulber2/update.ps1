@@ -1,21 +1,5 @@
 import-module au
 
-# Ensure we're in the script's directory so AU can find the nuspec file
-Write-Host "PWD: $PWD"
-Write-Host "PSScriptRoot: $PSScriptRoot"
-Write-Host "MyInvocation.MyCommand.Path: $($MyInvocation.MyCommand.Path)"
-Write-Host "MyInvocation.MyCommand.Definition: $($MyInvocation.MyCommand.Definition)"
-
-$scriptDir = if ($PSScriptRoot) { $PSScriptRoot } else { Split-Path -Parent $MyInvocation.MyCommand.Definition }
-Write-Host "Resolved scriptDir: $scriptDir"
-
-if ($scriptDir) {
-    Set-Location $scriptDir
-    Write-Host "Changed to: $PWD"
-}
-
-Write-Host "Nuspec files found: $(Get-ChildItem *.nuspec -ErrorAction SilentlyContinue | Select-Object -ExpandProperty Name)"
-
 function global:au_SearchReplace {
     @{
         'tools\chocolateyinstall.ps1' = @{

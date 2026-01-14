@@ -18,12 +18,12 @@ jobs:
         id: version_check
         shell: pwsh
         run: |
-          [xml]$nuspec = Get-Content mandelbulber2.nuspec
+          [xml]$nuspec = Get-Content mandelbulber2/mandelbulber2.nuspec
           $currentVersion = $nuspec.package.metadata.version
           Write-Host "Current version: $currentVersion"
 
           # Get version from previous commit
-          $previousNuspec = git show HEAD~1:mandelbulber2.nuspec 2>$null
+          $previousNuspec = git show HEAD~1:mandelbulber2/mandelbulber2.nuspec 2>$null
           if ($LASTEXITCODE -eq 0 -and $previousNuspec) {
             [xml]$prevXml = $previousNuspec
             $previousVersion = $prevXml.package.metadata.version
@@ -44,10 +44,11 @@ jobs:
       - name: Pack
         if: steps.version_check.outputs.new_version == 'true'
         run: choco pack
+        working-directory: mandelbulber2
 
       - name: Publish
         if: steps.version_check.outputs.new_version == 'true'
         shell: pwsh
         env:
           CHOCO_SECRET: ${{ secrets.CHOCO_SECRET }}
-        run: choco push --source "https://push.chocolatey.org/" --api-key "$env:CHOCO_SECRET"
+        run: choco push mandelbulber2/*.nupkg --source "https://push.chocolatey.org/" --api-key "$env:CHOCO_SECRET"

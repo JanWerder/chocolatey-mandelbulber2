@@ -19,7 +19,7 @@ jobs:
         shell: pwsh
 
       - name: Run update script
-        run: ./update.ps1
+        run: ./update_all.ps1
         shell: pwsh
 
       - name: Commit and push changes
