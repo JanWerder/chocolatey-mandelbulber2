@@ -13,7 +13,11 @@ function global:au_SearchReplace {
 }
 
 function global:au_GetLatest {
-    $release = Invoke-RestMethod -Uri 'https://api.github.com/repos/buddhi1980/mandelbulber2/releases/latest'
+    $headers = @{}
+    if ($env:GITHUB_TOKEN) {
+        $headers['Authorization'] = "token $env:GITHUB_TOKEN"
+    }
+    $release = Invoke-RestMethod -Uri 'https://api.github.com/repos/buddhi1980/mandelbulber2/releases/latest' -Headers $headers
     $asset = $release.assets | Where-Object { $_.name -match 'Setup\.exe$' } | Select-Object -First 1
 
     $url = $asset.browser_download_url
